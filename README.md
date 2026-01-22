@@ -5,7 +5,7 @@
 
 > **Early Development:** muxbee is experimental and bridge failures are expected. When bridges stop working, use `muxbee update` (or `u` in TUI) to pull latest images and restart.
 
-A batteries-included Matrix chat bridge stack and orchestrator. Built with Go, a single binary that puts all your messages in one place — WhatsApp, Signal, Discord, Telegram, and more — without editing config files or managing secrets.
+A batteries-included Matrix starter kit, chat bridge stack, and orchestrator. Built with Go and Docker, a single binary that puts all your messages in one place — WhatsApp, Signal, Discord, Telegram, and more — without editing config files or managing secrets.
 
 ![muxbee demo](assets/demo.gif)
 
@@ -18,6 +18,9 @@ Run one command. The TUI walks you through setup, starts services, and you're do
 ## What It Does
 
 muxbee is a single binary that sets up a self-hosted Matrix server with messaging bridges. All your chats from different platforms in one place. Config files are generated and complexity is handled for you.
+Essentially, muxbee is a locally hosted matrix starter kit that also happens to support bridges out of the box. Existing synapse users can use muxbee as a bridge configuration generator and then adapt their own configs with
+what muxbee generates
+
 
 - **Synapse** (Matrix homeserver)
 - **Element Web** (bundled chat interface — disable via TUI or `muxbee init --no-element`)
@@ -25,8 +28,7 @@ muxbee is a single binary that sets up a self-hosted Matrix server with messagin
 
 Like [Bitlbee](https://www.bitlbee.org/), you interact with bridge bots to link accounts (e.g., message `@whatsappbot` and follow the prompts). Unlike Bitlbee, messages sync in real-time, you don't miss messages when offline, and modern features like reactions, threads, and encryption work.
 
-> muxbee runs its own Synapse — ideal for a turnkey setup, but doesn't integrate with existing homeservers yet. [External Synapse support](https://github.com/tobocop2/muxbee/issues/14) is planned.
-
+> muxbee runs its own Synapse — ideal for a turnkey setup, but doesn't integrate with existing homeservers yet. 
 ## Requirements
 
 - **Docker 20.10+** with Compose V2 built-in (`docker compose`, not `docker-compose`) — verify you can run `docker compose`
@@ -66,6 +68,9 @@ See all releases: https://github.com/tobocop2/muxbee/releases
 ## Usage
 
 Run `muxbee` for the TUI, or `muxbee --help` for CLI commands.
+
+`muxbee` by default enables element and the TUI will show a link to the element web app. If you are new to the Matrix ecosystem, you can get your feet wet with element for web and configure all your bridges and enjoy watching 
+all of your messages appear in one place once you authenticate with each service bot
 
 See [USAGE.md](USAGE.md) for detailed documentation on bridges, connectivity modes, troubleshooting, and more.
 
@@ -159,7 +164,7 @@ and that is to  streamline the orchestration and configuration of synapse with b
 
 Saving the best for last
 
-> This repo unapologetically has used AI, but it works, and I vigilantly guided it and established the architecture. I carefully reviewed every piece. Telegram support is pretty hacky in that you need to initialize the bridge with API credentials. I enabled that support but it's just a hacky strategy that I'll hopefully revise sometime soon. I've wanted something of this nature for myself for a while and I figured now was the time. I am too lazy to configure synapse the old fashion way and just would wind up scripting something in a hacky way that works for a while. One day I'll have all these chats routed through IRC so I can revert back to using IRC but until then, I'm pretty happy with this solution
+> AI has unapologetically been used, but it works, and I vigilantly guided it and established the architecture. I carefully reviewed every piece. Telegram support is ugly right now due to requiring API credentials. I enabled that support but it's just a hacky strategy that I'll hopefully revise sometime soon. I've wanted something of this nature for myself for a while and I figured now was the time. I am too lazy to configure synapse the old fashion way and just would wind up scripting something in a hacky way that works for a while. One day I'll have all these chats routed through IRC so I can revert back to using IRC but until then, I'm pretty happy with this solution
 
 
 ## License
