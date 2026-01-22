@@ -142,9 +142,17 @@ Some bridges need testing — look for issues labeled [help wanted](https://gith
 
 muxbee wouldn't exist without the incredible [mautrix bridge ecosystem](https://github.com/mautrix) by [Tulir Asokan](https://github.com/tulir). Massive thanks for making many amazing Matrix bridges available to everyone.
 
-## License
+## Plans
 
-MIT
+
+Some bridges have quirks that need to be addressed but I have been able to send and receive messages reliably since the first version has been released. See issues for the behavior I have observed.
+
+Next, I'd like to add more useful bridges.
+
+Lastly, a streamlined self hosted solution is being prioritized but it's not ready yet. Some preliminary self hosting configs/code exist but these are not trustworthy and I do not recommend running this anywhere but your local machine for the time being.
+
+Ideally, I imagine a docker image and a docker-compose.yml file will be supplied with placeholders for the enabled bridges. At this moment everything is self contained to the executable, but I will be likely removing that functionality as I want this tool to have a single responsibility
+and that is to  streamline the orchestration and configuration of synapse with bridges.
 
 
 # Note about the code
@@ -152,3 +160,8 @@ MIT
 Saving the best for last
 
 > This repo unapologetically has used AI, but it works, and I vigilantly guided it and established the architecture. I carefully reviewed every piece. Telegram support is pretty hacky in that you need to initialize the bridge with API credentials. I enabled that support but it's just a hacky strategy that I'll hopefully revise sometime soon. I've wanted something of this nature for myself for a while and I figured now was the time. I am too lazy to configure synapse the old fashion way and just would wind up scripting something in a hacky way that works for a while. One day I'll have all these chats routed through IRC so I can revert back to using IRC but until then, I'm pretty happy with this solution
+
+
+## License
+
+MIT
