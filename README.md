@@ -3,7 +3,7 @@
 [![CI](https://github.com/tobocop2/muxbee/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tobocop2/muxbee/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/tobocop2/muxbee/graph/badge.svg)](https://codecov.io/gh/tobocop2/muxbee)
 
-> **Early Development:** muxbee is experimental and bridge failures are expected. When bridges stop working, use `muxbee update` (or `u` in TUI) to pull latest images and restart.
+> **Early Development:** muxbee is experimental and bridge failures are expected. When bridges stop working, use `muxbee update` (or `u` in TUI) to pull latest images and restart. For local  use only
 
 A batteries-included Matrix starter kit, chat bridge stack, and orchestrator. Built with Go and Docker, a single binary that puts all your messages in one place — WhatsApp, Signal, Discord, Telegram, and more — without editing config files or managing secrets.
 
@@ -128,10 +128,13 @@ Some bridges require cookie/token extraction from your browser. See [`scripts/co
 
 Matrix is difficult to set up. Synapse alone has hundreds of configuration options. Add bridges and you're dealing with: appservice registration files with cryptographic tokens, database configuration for each bridge, Docker networking, rate limit tuning, and double-puppeting setup. Each bridge has its own config format. Getting it all working together is difficult and easy to mess up.
 
-[Bitlbee](https://www.bitlbee.org/) is a massive inspiration, an orchestrator for chat plugins, all accessible via IRC. muxbee is similar in spirit: an orchestrator for matrix (for now mostly [mautrix](https://github.com/mautrix)) bridges, all accessible via Matrix. Bitlbee's limitations: bridges poll (delayed messages), you miss messages when disconnected, no encryption, no reactions/threads/edits, and formatting gets mangled. Matrix handles all of this.
+[Bitlbee](https://www.bitlbee.org/) and [Pidgin](https://pidgin.im/) are a massive inspiratios. muxbee is similar in spirit: an orchestrator for matrix (for now mostly [mautrix](https://github.com/mautrix)) bridges, all accessible via Matrix. Previous solution limitations: bridges poll (delayed messages), you miss messages when disconnected, no modern E2EE support, no reactions/threads/edits, and formatting gets mangled. Matrix handles all of this natively.
 
-[Beeper](https://beeper.com) also solves this problem with a polished app and cloud-hosted bridges. muxbee is not nearly as polished and is for tinkerers who want full control — no app installs, no cloud dependencies, runs on your hardware. There's some manual setup (messaging bridge bots), but it's simple for QR code bridges like WhatsApp, Discord, and Google Messages. You can also point Beeper or any Matrix client at the Synapse server muxbee sets up but this project
-bundles an Element web app. Beeper automatically will correct any issues with its cloud hosted bridges while locally hosting will require periodically updating bridges but this is an expected pain point around locally hosting things
+[Beeper](https://beeper.com) also solves this problem with a polished app and cloud-hosted bridges. muxbee is not nearly as polished and is for tinkerers who want full control — no app installs, no cloud dependencies, runs on your hardware. There's some manual setup (messaging bridge bots), but it's simple for QR code bridges like WhatsApp, Discord, and Google Messages. You can also point Beeper or any Matrix client at the Synapse server muxbee sets up but this project bundles an Element web app. Beeper automatically will correct any issues with its cloud hosted bridges while locally hosting will require periodically updating bridges but this is an expected pain point around locally hosting things. With element enabled, muxbee is essentially a fully locally hosted no frills alternative to beeper (for those that don't need imessage) with some light manual curation. The responsibility for authentication is delegated to bots and following bot instructions.
+
+This tool is meant for folks that loved tools like [Pidgin](https://pidgin.im/) and bitlbee but found them increasingly difficult to maintain as modern protocols evolved. While those ecosystems are awesome, they often require manual compilation and lack support for modern features. muxbee has an even smaller learning curve.
+
+Unlike [Pidgin](https://pidgin.im/) and bitlbee, there is no need to build plugins from source. Everything is containerized right now and synchronizing bridges with the latest versions is all contained within muxbee. If you are like me and feel that the bitlbee/[Pidgin](https://pidgin.im/) bridge experiences were more than satisfactory, then this tool is definitely for you
 
 ## Architecture
 
