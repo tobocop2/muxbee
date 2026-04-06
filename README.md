@@ -1,4 +1,4 @@
-> Warning: This project is unstable and in active development and not the best code and will be rebuilt soon
+> Warning: This project is unstable and in active development and code isn't the best and it will be rebuilt soon
 
 # muxbee
 

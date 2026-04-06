@@ -9,7 +9,7 @@ import (
 )
 
 // Version is set at build time via ldflags
-var Version = "dev"
+var Version = "0.1.1"
 
 var rootCmd = &cobra.Command{
 	Use:   "muxbee",
