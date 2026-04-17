@@ -93,6 +93,17 @@ func (d *DendriteServer) Stop() {
 	}
 }
 
+// WaitForHealth polls until the homeserver responds or times out.
+func (d *DendriteServer) WaitForHealth() error {
+	for i := 0; i < 30; i++ {
+		if err := d.Health(); err == nil {
+			return nil
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	return fmt.Errorf("homeserver did not become healthy within 15 seconds")
+}
+
 // Health checks if the homeserver is responding.
 func (d *DendriteServer) Health() error {
 	url := fmt.Sprintf("http://%s:%d/_matrix/client/versions", d.cfg.Address(), d.cfg.Port())
