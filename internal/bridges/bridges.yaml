@@ -1,0 +1,117 @@
+# Bridges with bridgev2 support (compiled-in, run in-process)
+
+whatsapp:
+  description: WhatsApp via linked device
+  port: 29318
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login whatsapp
+    2. Scan QR code with WhatsApp (Settings > Linked Devices)
+
+signal:
+  description: Signal messenger
+  port: 29313
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login signal
+    2. Scan QR code with Signal (Settings > Linked Devices)
+
+slack:
+  description: Slack
+  port: 29315
+  note: Requires token extraction
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login slack
+    2. Extract token/cookie from browser and paste when prompted
+
+meta:
+  description: Facebook/Instagram (Meta)
+  port: 29323
+  note: Requires cookie extraction
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login meta
+    2. Extract cookies from browser and paste when prompted
+
+gmessages:
+  description: Google Messages (SMS/RCS)
+  port: 29314
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login gmessages
+    2. Scan QR code with Google Messages (Menu > Device pairing)
+
+twitter:
+  description: Twitter/X
+  port: 29324
+  note: Requires cookie extraction
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login twitter
+    2. Extract ct0 and auth_token cookies from browser
+
+bluesky:
+  description: Bluesky social network
+  port: 29325
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login bluesky
+    2. Enter your handle/email and password
+
+linkedin:
+  description: LinkedIn Messaging
+  port: 29322
+  note: Requires cookie extraction
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login linkedin
+    2. Extract cookies from browser and paste when prompted
+
+irc:
+  description: IRC networks
+  port: 29326
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login irc
+    2. Enter network name, nickname, and SASL credentials
+
+googlechat:
+  description: Google Chat (Workspace)
+  port: 29320
+  note: Requires cookie extraction
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login googlechat
+    2. Extract cookies from browser and paste when prompted
+
+gvoice:
+  description: Google Voice (SMS/calls)
+  port: 29321
+  note: Requires cookie extraction
+  bridgev2_ready: true
+  login_instructions: |
+    1. Run: beetrix bridge login gvoice
+    2. Extract cookies from browser and paste when prompted
+
+# Bridges not yet ported to bridgev2 (run as external subprocesses)
+
+discord:
+  description: Discord
+  port: 29316
+  bridgev2_ready: false
+  login_instructions: |
+    1. Install mautrix-discord binary
+    2. Run: beetrix bridge add-external discord --binary /path/to/mautrix-discord
+    3. Run: beetrix bridge login discord
+
+telegram:
+  description: Telegram
+  port: 29317
+  note: Requires API credentials from my.telegram.org
+  requires_api_credentials: true
+  bridgev2_ready: false
+  login_instructions: |
+    1. Install mautrix-telegram binary
+    2. Run: beetrix bridge add-external telegram --binary /path/to/mautrix-telegram
+    3. Run: beetrix bridge login telegram
