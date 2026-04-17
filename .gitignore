@@ -2,6 +2,9 @@
 beetrix
 beetrix.exe
 
+# Local Dendrite fork (fetched by scripts/fetch-dendrite.sh)
+_dendrite/
+
 # Build
 dist/
 
