@@ -36,11 +36,12 @@ check-embed-sync: check-embed-present
 	fi
 
 # Mirror _dendrite_embed/ -> _dendrite/pkg/embed/ using rsync --delete so that
-# removed files are also dropped. This is a one-way push; never edit the
-# destination directly.
+# removed files are also dropped. One-way push; never edit the destination
+# directly. No include filter — the drift check uses `diff -qr` over the
+# whole tree, so the sync must match that scope.
 sync-embed:
 	@mkdir -p _dendrite/pkg/embed
-	@rsync -a --delete --include='*.go' --include='*/' --exclude='*' _dendrite_embed/ _dendrite/pkg/embed/
+	@rsync -a --delete _dendrite_embed/ _dendrite/pkg/embed/
 	@echo "synced _dendrite_embed/ -> _dendrite/pkg/embed/"
 
 lint:

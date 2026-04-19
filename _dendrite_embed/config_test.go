@@ -109,14 +109,13 @@ func TestRecompileExclusiveRegexes_InvalidRegexReturnsError(t *testing.T) {
 	assert.Contains(t, err.Error(), "exclusive username regex")
 }
 
-func TestAddAppservice_PropagatesInvalidRegexError(t *testing.T) {
+func TestAddAppservice_QuoteMetaProtectsRegexPrefix(t *testing.T) {
 	cfg := newTestConfig(t)
-	// A NamespacePrefix containing an unbalanced bracket survives QuoteMeta
-	// — QuoteMeta only escapes regex metacharacters, and '[' IS one of them,
-	// so this particular input is actually safe. To exercise AddAppservice's
-	// error propagation end-to-end we'd need to bypass QuoteMeta, which the
-	// public API doesn't allow. Keep this test narrow: assert the good path
-	// and rely on the two tests above for the error branches.
+	// QuoteMeta escapes regex metacharacters in the namespace prefix before
+	// it's interpolated into the compiled pattern, so even a hostile-looking
+	// prefix like "edge[case_" is safe. This is why AddAppservice itself
+	// cannot propagate an invalid-regex error through its public surface —
+	// the error branches are covered directly in the two tests above.
 	require.NoError(t, AddAppservice(cfg, AppserviceRegistration{
 		ID:              "edgecase",
 		URL:             "http://127.0.0.1:29999",
