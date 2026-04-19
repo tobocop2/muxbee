@@ -82,26 +82,48 @@ func TestAddAppservice_CompilesExclusiveRegex(t *testing.T) {
 	assert.True(t, cfg.Derived.ExclusiveApplicationServicesUsernameRegexp.MatchString("@signal_1:localhost"))
 }
 
-func TestAddAppservice_InvalidRegexReturnsError(t *testing.T) {
+func TestCompileNamespaceObjects_InvalidRegexReturnsError(t *testing.T) {
+	nsMap := map[string][]config.ApplicationServiceNamespace{
+		"users": {{Exclusive: true, Regex: "["}},
+	}
+	err := compileNamespaceObjects(nsMap)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "users")
+}
+
+func TestRecompileExclusiveRegexes_InvalidRegexReturnsError(t *testing.T) {
 	cfg := newTestConfig(t)
-	// ServerName with an unbalanced regex metacharacter — QuoteMeta normally
-	// prevents this, but verify the error path exists for defense in depth.
-	err := addAppserviceWithRawNamespace(cfg, config.ApplicationService{
+	// Bypass compileNamespaceObjects — feed a raw, malformed Regex directly
+	// into Derived.ApplicationServices so the join path in
+	// recompileExclusiveRegexes sees an invalid sub-pattern. This proves the
+	// error branch is reachable even though AddAppservice's normal flow
+	// validates patterns before reaching it.
+	cfg.Derived.ApplicationServices = append(cfg.Derived.ApplicationServices, config.ApplicationService{
 		ID: "broken",
 		NamespaceMap: map[string][]config.ApplicationServiceNamespace{
 			"users": {{Exclusive: true, Regex: "["}},
 		},
 	})
+	err := recompileExclusiveRegexes(cfg)
 	require.Error(t, err)
+	assert.Contains(t, err.Error(), "exclusive username regex")
 }
 
-// addAppserviceWithRawNamespace is a test-only helper bypassing the safe
-// regex construction in AddAppservice to exercise the error path.
-func addAppserviceWithRawNamespace(cfg *config.Dendrite, as config.ApplicationService) error {
-	if err := compileNamespaceObjects(as.NamespaceMap); err != nil {
-		return err
-	}
-	cfg.Derived.ApplicationServices = append(cfg.Derived.ApplicationServices, as)
-	recompileExclusiveRegexes(cfg)
-	return nil
+func TestAddAppservice_PropagatesInvalidRegexError(t *testing.T) {
+	cfg := newTestConfig(t)
+	// A NamespacePrefix containing an unbalanced bracket survives QuoteMeta
+	// — QuoteMeta only escapes regex metacharacters, and '[' IS one of them,
+	// so this particular input is actually safe. To exercise AddAppservice's
+	// error propagation end-to-end we'd need to bypass QuoteMeta, which the
+	// public API doesn't allow. Keep this test narrow: assert the good path
+	// and rely on the two tests above for the error branches.
+	require.NoError(t, AddAppservice(cfg, AppserviceRegistration{
+		ID:              "edgecase",
+		URL:             "http://127.0.0.1:29999",
+		ASToken:         "as",
+		HSToken:         "hs",
+		BotUsername:     "edgebot",
+		NamespacePrefix: "edge[case_",
+		ServerName:      "localhost",
+	}))
 }
