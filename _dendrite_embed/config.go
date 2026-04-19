@@ -72,7 +72,8 @@ type AppserviceRegistration struct {
 
 // AddAppservice registers a bridge appservice with the Dendrite config.
 // Must be called before Start().
-func AddAppservice(cfg *config.Dendrite, reg AppserviceRegistration) {
+func AddAppservice(cfg *config.Dendrite, reg AppserviceRegistration) error {
+	quotedServer := regexp.QuoteMeta(reg.ServerName)
 	as := config.ApplicationService{
 		ID:              reg.ID,
 		URL:             reg.URL,
@@ -83,36 +84,51 @@ func AddAppservice(cfg *config.Dendrite, reg AppserviceRegistration) {
 		Protocols:       []string{reg.ID},
 		NamespaceMap: map[string][]config.ApplicationServiceNamespace{
 			"users": {
+				// Prefixed puppet userIDs (e.g. @whatsapp_123:localhost).
 				{
 					Exclusive: true,
-					Regex:     fmt.Sprintf("@%s.*:%s", reg.NamespacePrefix, regexp.QuoteMeta(reg.ServerName)),
+					Regex:     fmt.Sprintf("@%s.*:%s", regexp.QuoteMeta(reg.NamespacePrefix), quotedServer),
+				},
+				// Bot sender userID (e.g. @whatsappbot:localhost). Dendrite's
+				// native YAML loader appends this; we must match that behavior
+				// so the bot name is reserved via an exclusive namespace.
+				{
+					Exclusive: true,
+					Regex:     regexp.QuoteMeta(fmt.Sprintf("@%s:%s", reg.BotUsername, reg.ServerName)),
 				},
 			},
 			"aliases": {
 				{
 					Exclusive: true,
-					Regex:     fmt.Sprintf("#%s.*:%s", reg.NamespacePrefix, regexp.QuoteMeta(reg.ServerName)),
+					Regex:     fmt.Sprintf("#%s.*:%s", regexp.QuoteMeta(reg.NamespacePrefix), quotedServer),
 				},
 			},
 		},
 	}
 
-	compileNamespaceObjects(as.NamespaceMap)
+	if err := compileNamespaceObjects(as.NamespaceMap); err != nil {
+		return fmt.Errorf("appservice %q: %w", reg.ID, err)
+	}
 	cfg.Derived.ApplicationServices = append(cfg.Derived.ApplicationServices, as)
 	recompileExclusiveRegexes(cfg)
+	return nil
 }
 
 // compileNamespaceObjects populates each namespace's RegexpObject so Dendrite's
 // per-namespace matching (OwnsNamespaceCoveringUserId, etc.) doesn't nil-panic.
-func compileNamespaceObjects(nsMap map[string][]config.ApplicationServiceNamespace) {
+// Returns an error if any regex fails to compile — surfacing this matters
+// because a silent failure reproduces the exact nil-panic this code fixes.
+func compileNamespaceObjects(nsMap map[string][]config.ApplicationServiceNamespace) error {
 	for key, namespaces := range nsMap {
 		for i := range namespaces {
-			if r, err := regexp.Compile(namespaces[i].Regex); err == nil {
-				namespaces[i].RegexpObject = r
+			r, err := regexp.Compile(namespaces[i].Regex)
+			if err != nil {
+				return fmt.Errorf("namespace %q regex %q: %w", key, namespaces[i].Regex, err)
 			}
+			namespaces[i].RegexpObject = r
 		}
-		nsMap[key] = namespaces
 	}
+	return nil
 }
 
 func recompileExclusiveRegexes(cfg *config.Dendrite) {

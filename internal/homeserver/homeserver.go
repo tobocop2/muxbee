@@ -58,7 +58,7 @@ func (d *DendriteServer) Start(ctx context.Context) error {
 			continue
 		}
 		tokens := d.cfg.BridgeTokens[name]
-		dendembed.AddAppservice(dendCfg, dendembed.AppserviceRegistration{
+		if err := dendembed.AddAppservice(dendCfg, dendembed.AppserviceRegistration{
 			ID:              name,
 			URL:             fmt.Sprintf("http://127.0.0.1:%d", bridgePort(name)),
 			ASToken:         tokens.ASToken,
@@ -66,7 +66,9 @@ func (d *DendriteServer) Start(ctx context.Context) error {
 			BotUsername:     name + "bot",
 			NamespacePrefix: name + "_",
 			ServerName:      d.cfg.ServerName,
-		})
+		}); err != nil {
+			return fmt.Errorf("registering appservice %q: %w", name, err)
+		}
 		slog.Info("registered appservice", "bridge", name)
 	}
 

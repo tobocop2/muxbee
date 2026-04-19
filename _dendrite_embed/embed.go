@@ -5,6 +5,7 @@ package embed
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/element-hq/dendrite/appservice"
 	"github.com/element-hq/dendrite/federationapi"
@@ -76,7 +77,10 @@ func Start(cfg *config.Dendrite, listenAddr string) (*Server, error) {
 	monolith.AddAllPublicRoutes(processCtx, cfg, routers, cm, natsInstance, caches, caching.DisableMetrics)
 
 	// Use Dendrite's own HTTP server setup (handles gorilla/mux routing correctly)
-	httpAddr, _ := config.HTTPAddress("http://" + listenAddr)
+	httpAddr, err := config.HTTPAddress("http://" + listenAddr)
+	if err != nil {
+		return nil, fmt.Errorf("parsing listen address %q: %w", listenAddr, err)
+	}
 	go basepkg.SetupAndServeHTTP(processCtx, cfg, routers, httpAddr, nil, nil)
 
 	return &Server{
