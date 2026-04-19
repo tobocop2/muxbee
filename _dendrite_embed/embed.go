@@ -5,9 +5,6 @@ package embed
 
 import (
 	"context"
-	"fmt"
-	"net/http"
-	"time"
 
 	"github.com/element-hq/dendrite/appservice"
 	"github.com/element-hq/dendrite/federationapi"
@@ -31,7 +28,6 @@ type Server struct {
 	ProcessCtx *process.ProcessContext
 	UserAPI    userapi_api.UserInternalAPI
 	Monolith   setup.Monolith
-	HTTPServer *http.Server
 }
 
 // Start boots the Dendrite monolith and begins serving HTTP on the given address.
@@ -76,48 +72,23 @@ func Start(cfg *config.Dendrite, listenAddr string) (*Server, error) {
 		RoomserverAPI: rsAPI,
 		UserAPI:       userAPI,
 	}
+
 	monolith.AddAllPublicRoutes(processCtx, cfg, routers, cm, natsInstance, caches, caching.DisableMetrics)
 
-	// Build HTTP mux from Dendrite's routers
-	mux := http.NewServeMux()
-	mux.Handle(httputil.PublicClientPathPrefix, routers.Client)
-	mux.Handle(httputil.PublicMediaPathPrefix, routers.Media)
-	mux.Handle(httputil.DendriteAdminPathPrefix, routers.DendriteAdmin)
-	mux.Handle(httputil.SynapseAdminPathPrefix, routers.SynapseAdmin)
-	mux.Handle("/.well-known/", routers.WellKnown)
-
-	if !cfg.Global.DisableFederation {
-		mux.Handle(httputil.PublicFederationPathPrefix, routers.Federation)
-		mux.Handle(httputil.PublicKeyPathPrefix, routers.Keys)
-	}
-
-	httpServer := &http.Server{
-		Addr:    listenAddr,
-		Handler: mux,
-	}
-
-	go func() {
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			fmt.Printf("dendrite http error: %v\n", err)
-		}
-	}()
+	// Use Dendrite's own HTTP server setup (handles gorilla/mux routing correctly)
+	httpAddr, _ := config.HTTPAddress("http://" + listenAddr)
+	go basepkg.SetupAndServeHTTP(processCtx, cfg, routers, httpAddr, nil, nil)
 
 	return &Server{
 		Config:     cfg,
 		ProcessCtx: processCtx,
 		UserAPI:    userAPI,
 		Monolith:   monolith,
-		HTTPServer: httpServer,
 	}, nil
 }
 
 // Stop gracefully shuts down the server.
 func (s *Server) Stop() {
-	if s.HTTPServer != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		s.HTTPServer.Shutdown(ctx)
-	}
 	if s.ProcessCtx != nil {
 		s.ProcessCtx.ShutdownDendrite()
 		s.ProcessCtx.WaitForComponentsToFinish()

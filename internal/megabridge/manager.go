@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -99,6 +100,11 @@ func (m *Manager) startBridge(ctx context.Context, name string, info *bridges.Br
 		return fmt.Errorf("no tokens configured for bridge %s", name)
 	}
 
+	// Ensure bridge data directory exists
+	if err := os.MkdirAll(config.BridgeDataDir(name), 0700); err != nil {
+		return fmt.Errorf("creating bridge data dir: %w", err)
+	}
+
 	// Build bridge config programmatically
 	bridgeCfg := buildBridgeConfig(m.cfg, name, info, tokens)
 
@@ -115,6 +121,7 @@ func (m *Manager) startBridge(ctx context.Context, name string, info *bridges.Br
 
 	// Create matrix connector
 	matrixConn := matrix.NewConnector(bridgeCfg)
+	matrixConn.IgnoreUnsupportedServer = true // Dendrite reports lower spec version than mautrix requires
 
 	// Create bridge
 	br := bridgev2.NewBridge("", db, log, &bridgeCfg.Bridge, matrixConn, connector, commands.NewProcessor)

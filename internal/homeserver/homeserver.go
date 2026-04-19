@@ -51,7 +51,8 @@ func (d *DendriteServer) Start(ctx context.Context) error {
 		return fmt.Errorf("building dendrite config: %w", err)
 	}
 
-	// Register appservices for enabled bridges
+	// Register appservices for enabled bridges BEFORE starting the monolith.
+	// Dendrite must know about appservices at boot time for token validation.
 	for name := range d.cfg.BridgeTokens {
 		if !d.cfg.IsBridgeEnabled(name) {
 			continue
@@ -59,13 +60,14 @@ func (d *DendriteServer) Start(ctx context.Context) error {
 		tokens := d.cfg.BridgeTokens[name]
 		dendembed.AddAppservice(dendCfg, dendembed.AppserviceRegistration{
 			ID:              name,
-			URL:             fmt.Sprintf("http://localhost:%d", bridgePort(name)),
+			URL:             fmt.Sprintf("http://127.0.0.1:%d", bridgePort(name)),
 			ASToken:         tokens.ASToken,
 			HSToken:         tokens.HSToken,
 			BotUsername:     name + "bot",
 			NamespacePrefix: name + "_",
 			ServerName:      d.cfg.ServerName,
 		})
+		slog.Info("registered appservice", "bridge", name)
 	}
 
 	listenAddr := fmt.Sprintf("%s:%d", d.cfg.Address(), d.cfg.Port())

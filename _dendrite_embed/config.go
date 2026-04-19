@@ -97,8 +97,22 @@ func AddAppservice(cfg *config.Dendrite, reg AppserviceRegistration) {
 		},
 	}
 
+	compileNamespaceObjects(as.NamespaceMap)
 	cfg.Derived.ApplicationServices = append(cfg.Derived.ApplicationServices, as)
 	recompileExclusiveRegexes(cfg)
+}
+
+// compileNamespaceObjects populates each namespace's RegexpObject so Dendrite's
+// per-namespace matching (OwnsNamespaceCoveringUserId, etc.) doesn't nil-panic.
+func compileNamespaceObjects(nsMap map[string][]config.ApplicationServiceNamespace) {
+	for key, namespaces := range nsMap {
+		for i := range namespaces {
+			if r, err := regexp.Compile(namespaces[i].Regex); err == nil {
+				namespaces[i].RegexpObject = r
+			}
+		}
+		nsMap[key] = namespaces
+	}
 }
 
 func recompileExclusiveRegexes(cfg *config.Dendrite) {
