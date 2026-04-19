@@ -13,10 +13,10 @@ import (
 
 // ConfigOptions holds parameters for building a Dendrite config.
 type ConfigOptions struct {
-	ServerName  string
-	DataDir     string
-	PrivateKey  ed25519.PrivateKey
-	Federation  bool
+	ServerName string
+	DataDir    string
+	PrivateKey ed25519.PrivateKey
+	Federation bool
 }
 
 // BuildConfig creates a Dendrite config programmatically.
@@ -110,7 +110,9 @@ func AddAppservice(cfg *config.Dendrite, reg AppserviceRegistration) error {
 		return fmt.Errorf("appservice %q: %w", reg.ID, err)
 	}
 	cfg.Derived.ApplicationServices = append(cfg.Derived.ApplicationServices, as)
-	recompileExclusiveRegexes(cfg)
+	if err := recompileExclusiveRegexes(cfg); err != nil {
+		return fmt.Errorf("appservice %q: %w", reg.ID, err)
+	}
 	return nil
 }
 
@@ -131,32 +133,40 @@ func compileNamespaceObjects(nsMap map[string][]config.ApplicationServiceNamespa
 	return nil
 }
 
-func recompileExclusiveRegexes(cfg *config.Dendrite) {
+// recompileExclusiveRegexes joins every exclusive namespace pattern into a
+// single OR-regex used by Dendrite's hot-path collision checks. Individual
+// patterns have already been validated by compileNamespaceObjects, so the
+// join cannot introduce a new syntax error — but we surface it anyway rather
+// than repeating the silent-failure pattern this commit is undoing.
+func recompileExclusiveRegexes(cfg *config.Dendrite) error {
 	var userPatterns, aliasPatterns []string
 
 	for _, as := range cfg.Derived.ApplicationServices {
-		if users, ok := as.NamespaceMap["users"]; ok {
-			for _, ns := range users {
-				if ns.Exclusive {
-					userPatterns = append(userPatterns, ns.Regex)
-				}
+		for _, ns := range as.NamespaceMap["users"] {
+			if ns.Exclusive {
+				userPatterns = append(userPatterns, ns.Regex)
 			}
 		}
-		if aliases, ok := as.NamespaceMap["aliases"]; ok {
-			for _, ns := range aliases {
-				if ns.Exclusive {
-					aliasPatterns = append(aliasPatterns, ns.Regex)
-				}
+		for _, ns := range as.NamespaceMap["aliases"] {
+			if ns.Exclusive {
+				aliasPatterns = append(aliasPatterns, ns.Regex)
 			}
 		}
 	}
 
 	if len(userPatterns) > 0 {
-		combined := "(" + strings.Join(userPatterns, ")|(") + ")"
-		cfg.Derived.ExclusiveApplicationServicesUsernameRegexp, _ = regexp.Compile(combined)
+		r, err := regexp.Compile("(" + strings.Join(userPatterns, ")|(") + ")")
+		if err != nil {
+			return fmt.Errorf("exclusive username regex: %w", err)
+		}
+		cfg.Derived.ExclusiveApplicationServicesUsernameRegexp = r
 	}
 	if len(aliasPatterns) > 0 {
-		combined := "(" + strings.Join(aliasPatterns, ")|(") + ")"
-		cfg.Derived.ExclusiveApplicationServicesAliasRegexp, _ = regexp.Compile(combined)
+		r, err := regexp.Compile("(" + strings.Join(aliasPatterns, ")|(") + ")")
+		if err != nil {
+			return fmt.Errorf("exclusive alias regex: %w", err)
+		}
+		cfg.Derived.ExclusiveApplicationServicesAliasRegexp = r
 	}
+	return nil
 }

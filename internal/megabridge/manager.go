@@ -121,7 +121,12 @@ func (m *Manager) startBridge(ctx context.Context, name string, info *bridges.Br
 
 	// Create matrix connector
 	matrixConn := matrix.NewConnector(bridgeCfg)
-	matrixConn.IgnoreUnsupportedServer = true // Dendrite reports lower spec version than mautrix requires
+	// Dendrite advertises spec v1.2 but mautrix bridgev2 requires v1.4. Forcing
+	// past the version check unblocks Phase 2 bringup; revisit in Phase 3 when
+	// login/puppeting flows actually exercise the v1.3-v1.4 surface.
+	// TODO(phase3): remove once Dendrite reports a compatible spec version or
+	// the bridge falls back gracefully on missing endpoints.
+	matrixConn.IgnoreUnsupportedServer = true
 
 	// Create bridge
 	br := bridgev2.NewBridge("", db, log, &bridgeCfg.Bridge, matrixConn, connector, commands.NewProcessor)
@@ -153,12 +158,12 @@ func buildBridgeConfig(cfg *config.Config, name string, info *bridges.BridgeInfo
 			Software: "standard",
 		},
 		AppService: bridgeconfig.AppserviceConfig{
-			ID:       name,
-			ASToken:  tokens.ASToken,
-			HSToken:  tokens.HSToken,
-			Bot:      bridgeconfig.BotUserConfig{Username: info.BotUsername()},
-			Port:     uint16(info.Port),
-			Hostname: "127.0.0.1",
+			ID:               name,
+			ASToken:          tokens.ASToken,
+			HSToken:          tokens.HSToken,
+			Bot:              bridgeconfig.BotUserConfig{Username: info.BotUsername()},
+			Port:             uint16(info.Port),
+			Hostname:         "127.0.0.1",
 			UsernameTemplate: fmt.Sprintf("%s_{{.}}", name),
 		},
 		Bridge: bridgeconfig.BridgeConfig{

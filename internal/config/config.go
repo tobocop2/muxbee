@@ -12,16 +12,16 @@ import (
 
 // Config represents the beetrix settings.
 type Config struct {
-	ServerName     string                  `yaml:"server_name"`
-	ListenAddress  string                  `yaml:"listen_address"`
-	ListenPort     int                     `yaml:"listen_port"`
-	Federation     bool                    `yaml:"federation"`
-	LogLevel       string                  `yaml:"log_level"`
-	Admin          AdminConfig             `yaml:"admin"`
-	EnabledBridges []string                `yaml:"enabled_bridges"`
-	BridgeTokens   map[string]BridgeTokens `yaml:"bridge_tokens,omitempty"`
-	Telegram       *TelegramConfig         `yaml:"telegram,omitempty"`
-	DoublePuppet   *BridgeTokens           `yaml:"double_puppet_tokens,omitempty"`
+	ServerName      string                          `yaml:"server_name"`
+	ListenAddress   string                          `yaml:"listen_address"`
+	ListenPort      int                             `yaml:"listen_port"`
+	Federation      bool                            `yaml:"federation"`
+	LogLevel        string                          `yaml:"log_level"`
+	Admin           AdminConfig                     `yaml:"admin"`
+	EnabledBridges  []string                        `yaml:"enabled_bridges"`
+	BridgeTokens    map[string]BridgeTokens         `yaml:"bridge_tokens,omitempty"`
+	Telegram        *TelegramConfig                 `yaml:"telegram,omitempty"`
+	DoublePuppet    *BridgeTokens                   `yaml:"double_puppet_tokens,omitempty"`
 	ExternalBridges map[string]ExternalBridgeConfig `yaml:"external_bridges,omitempty"`
 }
 
@@ -149,11 +149,11 @@ func NewDefault() (*Config, error) {
 	}
 
 	return &Config{
-		ServerName:     "localhost",
-		ListenAddress:  "127.0.0.1",
-		ListenPort:     8008,
-		Federation:     false,
-		LogLevel:       "info",
+		ServerName:    "localhost",
+		ListenAddress: "127.0.0.1",
+		ListenPort:    8008,
+		Federation:    false,
+		LogLevel:      "info",
 		Admin: AdminConfig{
 			Username: "admin",
 			Password: adminPass,
